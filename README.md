@@ -52,6 +52,12 @@ CryptoJS Library: A comprehensive JavaScript library of cryptographic algorithms
 
 Google Fonts: For importing the futuristic 'Orbitron' and 'Exo 2' fonts to enhance the theme.
 
+
+
+# LIVE Demo for the Project
+Check project https://alwynsharon.github.io/Cryptography-CA-3-Assignment/
+
+
  # License : 
  
 This project is licensed under the MIT License.
