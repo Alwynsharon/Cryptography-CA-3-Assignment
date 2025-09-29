@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DES Encryption & Decryption</title>
+    
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts: Orbitron & Exo 2 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Exo+2:wght@400;500&display=swap" rel="stylesheet">
+    
+    <!-- CryptoJS Library for DES -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+
+    <style>
+        body {
+            font-family: 'Exo 2', sans-serif;
+            background-color: #0f0c29;
+            /* A subtle gradient background */
+            background-image: linear-gradient(to right top, #0f0c29, #1c153f, #2a1c56, #382470, #482c8b);
+        }
+        .font-orbitron {
+            font-family: 'Orbitron', sans-serif;
+        }
+        /* Custom glow effect for buttons */
+        .cyber-glow-btn {
+            box-shadow: 0 0 3px currentColor;
+            transition: all 0.3s ease-in-out;
+        }
+        .cyber-glow-btn:hover, .cyber-glow-btn:focus {
+            box-shadow: 0 0 8px currentColor, 0 0 15px currentColor;
+        }
+        /* Custom glow for focused inputs */
+        .cyber-glow-input:focus {
+            box-shadow: 0 0 5px #0ea5e9, 0 0 10px #0ea5e9; /* sky-500 */
+        }
+        /* The main card with a semi-transparent background and border */
+        .cyber-card {
+            background: rgba(10, 10, 20, 0.5);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(14, 165, 233, 0.4);
+        }
+        /* Custom scrollbar to match the theme */
+        textarea::-webkit-scrollbar {
+            width: 8px;
+        }
+        textarea::-webkit-scrollbar-track {
+            background: rgba(30, 41, 59, 0.5); /* slate-800 */
+        }
+        textarea::-webkit-scrollbar-thumb {
+            background: #0ea5e9; /* sky-500 */
+            border-radius: 4px;
+        }
+        textarea::-webkit-scrollbar-thumb:hover {
+            background: #38bdf8; /* sky-400 */
+        }
+    </style>
+</head>
+<body class="text-gray-200 flex items-center justify-center min-h-screen p-4">
+
+    <div class="w-full max-w-2xl cyber-card rounded-2xl shadow-2xl p-6 md:p-10 shadow-sky-500/20">
+        
+        <!-- Header Section -->
+        <div class="text-center mb-8">
+            <h1 class="text-3xl md:text-4xl font-bold font-orbitron text-transparent bg-clip-text bg-gradient-to-r from-sky-400 to-fuchsia-500 flex items-center justify-center gap-3">
+                 <!-- A new, more fitting icon -->
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-sky-400"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                DES Terminal
+            </h1>
+            <p class="text-gray-400 mt-2 text-sm">Encrypt and decrypt data using the Data Encryption Standard.</p>
+        </div>
+
+        <!-- Main Content Area -->
+        <div class="space-y-6">
+            <div>
+                <label for="inputText" class="block mb-2 text-sm font-medium text-sky-300">Input String</label>
+                <textarea id="inputText" rows="6" class="w-full p-3 bg-slate-900/70 border border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500/50 focus:border-sky-500 transition-all duration-300 placeholder-slate-500 cyber-glow-input" placeholder="Enter plaintext or ciphertext..."></textarea>
+            </div>
+
+            <div>
+                <label for="secretKey" class="block mb-2 text-sm font-medium text-sky-300">Secret Key (8 Bytes)</label>
+                <input type="text" id="secretKey" maxlength="8" class="w-full p-3 bg-slate-900/70 border border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500/50 focus:border-sky-500 transition-all duration-300 placeholder-slate-500 cyber-glow-input" placeholder="Enter 8-character key...">
+            </div>
+            
+            <div>
+                <div class="flex justify-between items-center mb-2">
+                    <label for="resultText" class="block text-sm font-medium text-sky-300">Output</label>
+                    <button id="copyBtn" class="text-xs text-fuchsia-400 hover:text-fuchsia-300 font-medium transition-colors">Copy to Clipboard</button>
+                </div>
+                <textarea id="resultText" rows="6" readonly class="w-full p-3 bg-slate-900 border border-slate-700 rounded-lg cursor-not-allowed placeholder-slate-500 font-mono" placeholder="Result will appear here..."></textarea>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="grid grid-cols-2 gap-4 pt-2">
+                <button id="encryptBtn" class="w-full py-3 px-4 rounded-lg font-semibold text-white bg-sky-600 hover:bg-sky-500 focus:outline-none text-sky-200 cyber-glow-btn transition-all duration-300">
+                    ENCRYPT
+                </button>
+                <button id="decryptBtn" class="w-full py-3 px-4 rounded-lg font-semibold text-white bg-fuchsia-700 hover:bg-fuchsia-600 focus:outline-none text-fuchsia-200 cyber-glow-btn transition-all duration-300">
+                    DECRYPT
+                </button>
+            </div>
+
+            <!-- Clear Button -->
+            <div class="text-center pt-2">
+                 <button id="clearBtn" class="py-2 px-6 rounded-lg font-semibold text-gray-300 bg-slate-700 hover:bg-slate-600 focus:outline-none focus:ring-4 focus:ring-slate-500/50 transition-all duration-300">Clear</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Notification Toast -->
+    <div id="notification" class="fixed bottom-5 right-5 text-white py-2 px-5 rounded-lg shadow-lg opacity-0 transition-all duration-300 transform translate-y-10 cyber-card border-red-500">
+        Notification Message
+    </div>
+
+    <script>
+        // DOM Element References
+        const inputText = document.getElementById('inputText');
+        const secretKey = document.getElementById('secretKey');
+        const encryptBtn = document.getElementById('encryptBtn');
+        const decryptBtn = document.getElementById('decryptBtn');
+        const resultText = document.getElementById('resultText');
+        const copyBtn = document.getElementById('copyBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const notification = document.getElementById('notification');
+
+        let notificationTimeout;
+
+        /**
+         * Shows a notification message.
+         * @param {string} message - The message to display.
+         * @param {boolean} isError - If true, styles the notification as an error (red border).
+         */
+        function showNotification(message, isError = false) {
+            clearTimeout(notificationTimeout);
+            notification.textContent = message;
+            notification.classList.remove('border-red-500', 'border-green-500', 'opacity-0', 'translate-y-10');
+            notification.classList.add(isError ? 'border-red-500' : 'border-green-500', 'opacity-100', 'translate-y-0');
+
+            notificationTimeout = setTimeout(() => {
+                notification.classList.add('opacity-0', 'translate-y-10');
+            }, 3000);
+        }
+
+        /**
+         * Validates the inputs before performing an operation.
+         * @returns {boolean} - True if inputs are valid, false otherwise.
+         */
+        function validateInputs() {
+            if (inputText.value.trim() === '') {
+                showNotification('Input cannot be empty.', true);
+                return false;
+            }
+            if (secretKey.value.length !== 8) {
+                showNotification('Secret key must be exactly 8 characters.', true);
+                return false;
+            }
+            return true;
+        }
+
+        // Event Listener for Encrypt Button
+        encryptBtn.addEventListener('click', () => {
+            if (!validateInputs()) return;
+
+            try {
+                const key = CryptoJS.enc.Utf8.parse(secretKey.value);
+                const encrypted = CryptoJS.DES.encrypt(inputText.value, key, {
+                    mode: CryptoJS.mode.ECB,
+                    padding: CryptoJS.pad.Pkcs7
+                });
+                resultText.value = encrypted.toString();
+                showNotification('Encryption successful!', false);
+            } catch (error) {
+                console.error("Encryption Error:", error);
+                showNotification('Encryption failed.', true);
+            }
+        });
+
+        // Event Listener for Decrypt Button
+        decryptBtn.addEventListener('click', () => {
+            if (!validateInputs()) return;
+
+            try {
+                const key = CryptoJS.enc.Utf8.parse(secretKey.value);
+                const decrypted = CryptoJS.DES.decrypt(inputText.value, key, {
+                    mode: CryptoJS.mode.ECB,
+                    padding: CryptoJS.pad.Pkcs7
+                });
+                const decryptedText = decrypted.toString(CryptoJS.enc.Utf8);
+                
+                if (decryptedText) {
+                    resultText.value = decryptedText;
+                    showNotification('Decryption successful!', false);
+                } else {
+                     showNotification('Decryption failed: Invalid key or data.', true);
+                }
+            } catch (error) {
+                console.error("Decryption Error:", error);
+                showNotification('Decryption failed: Malformed ciphertext.', true);
+            }
+        });
+        
+        // Event Listener for Copy Button
+        copyBtn.addEventListener('click', () => {
+            if(resultText.value === '') {
+                showNotification('Nothing to copy.', true);
+                return;
+            }
+            
+            resultText.select();
+            resultText.setSelectionRange(0, 99999);
+            try {
+                document.execCommand('copy');
+                showNotification('Copied to clipboard!', false);
+            } catch (err) {
+                console.error('Failed to copy: ', err);
+                showNotification('Failed to copy text.', true);
+            }
+            window.getSelection().removeAllRanges();
+        });
+
+        // Event listener for Clear button
+        clearBtn.addEventListener('click', () => {
+            inputText.value = '';
+            secretKey.value = '';
+            resultText.value = '';
+            showNotification('Fields cleared.', false);
+        });
+
+    </script>
+</body>
+</html>
+
